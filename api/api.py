@@ -9,12 +9,12 @@ app = FastAPI()
 
 class BookingData(BaseModel):
     location: str = ""
-    startDate: int = 0
-    endDate: int = 0
+    startDate: str = ""
+    endDate: str = ""
     numberOfGuests: int = 0
     numberOfRooms: int = 0
     features: List[str] = []
-    budgetPerPerson: int = 0
+    budgetPerPerson: float = 0
     currency: str = "USD"
 
     @property
@@ -35,9 +35,7 @@ class BookingData(BaseModel):
         return self.total_budget_per_night * self.number_of_nights
 
 class ChatHistory(BaseModel):
-    name: str
-    type: str
-    id: int
+    chatId: str
     messages: list
     booking_data: Optional[BookingData] = None  # Make booking_data optional
 
@@ -60,10 +58,16 @@ async def chat_endpoint(chat_history: ChatHistory):
     # Extract messages from the chat history
     messages = chat_history.messages
 
+    print("Messages received:", messages)
+    print("Booking data received:", chat_history.booking_data)
+    print("Chat history:", chat_history)
+
     # Convert messages to the format expected by the agent
     formatted_messages = [
         {"role": "user", "content": message["text"]} for message in messages
     ]
+    print("formatted_messages:", formatted_messages)
+
 
     # Extract booking data if available
     if chat_history.booking_data:

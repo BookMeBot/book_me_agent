@@ -2,6 +2,10 @@ from typing import Any, Dict, Optional
 import anthropic
 import os
 from dotenv import load_dotenv
+import json
+import requests
+from datetime import datetime
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -63,7 +67,7 @@ def check_and_return_payload(data):
         return {
             "data": {
                 "chatId": "-4555870136",
-                "completedData": True,
+                "completedData": False, #come back and change this
                 "response": {"requestData": data},
             }
         }
@@ -80,34 +84,99 @@ def check_and_return_payload(data):
 
 def search_web(query):
     """
-    Perform a web search based on the provided query.
-    :param query: The search query extracted from the tool input.
-    :return: Search results or a message indicating the search was performed.
+    Search for hotels on Travala.com
+    :param query: The search query containing booking details
+    :return: JSON array of hotel results
     """
-    # Implement the search logic here
-    print(f"Performing web search for query: {query}")
-    # TODO: Update this
-    return "Search results for the query."
+    print(f"Searching Travala for query: {query}")
+    
+    # Parse the query if it's a string
+    if isinstance(query, str):
+        try:
+            query = json.loads(query)
+        except json.JSONDecodeError:
+            print("Error parsing query string to JSON")
+            return {"hotels": []}
+
+    # Format dates to YYYY-MM-DD
+    try:
+        checkin = datetime.fromisoformat(query.get('checkin', '').replace('Z', '')).strftime('%Y-%m-%d')
+        checkout = datetime.fromisoformat(query.get('checkout', '').replace('Z', '')).strftime('%Y-%m-%d')
+    except ValueError as e:
+        print(f"Error parsing dates: {e}")
+        return {"hotels": []}
+
+    # Construct the Travala API URL
+    base_url = "https://api.travala.com/api/v2/hotels/search"
+    
+    # Build the parameters
+    params = {
+        "city": query.get('location', ''),
+        "checkIn": checkin,
+        "checkOut": checkout,
+        "rooms": query.get('rooms', 1),
+        "adults": query.get('guests', 1),
+        "children": 0,  # Add if needed
+        "currency": "USD",
+        "page": 1,
+        "limit": 10  # Number of results to return
+    }
+    
+    headers = {
+        "accept": "application/json",
+        # Add any required API keys or authentication headers
+        "User-Agent": "Your-Bot-Name/1.0"
+    }
+
+    try:
+        response = requests.get(base_url, params=params, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Transform Travala response to our format
+            hotels = []
+            for hotel in data.get('hotels', []):
+                hotels.append({
+                    "id": hotel.get('id'),
+                    "name": hotel.get('name'),
+                    "location": hotel.get('address', {}).get('city'),
+                    "price": {
+                        "amount": hotel.get('price', {}).get('amount'),
+                        "currency": "USD",
+                        "per": "night"
+                    },
+                    "amenities": hotel.get('amenities', []),
+                    "rating": hotel.get('rating', {}).get('score'),
+                    "available": True,
+                    "url": f"https://travala.com/hotel/{hotel.get('slug')}",
+                    "thumbnail": hotel.get('thumbnail'),
+                    "description": hotel.get('description')
+                })
+            
+            return {"hotels": hotels}
+        else:
+            print(f"Error from Travala API: {response.status_code}")
+            return {"hotels": []}
+
+    except Exception as e:
+        print(f"Error searching Travala: {e}")
+        return {"hotels": []}
 
 
-def find_tool_call(response_content):
-    """
-    Search through the response content to find the first tool call.
-    :param response_content: List of content blocks from the response.
-    :return: Tuple of tool name and input if a tool call is found, otherwise (None, None).
-    """
-    for block in response_content:
-        if isinstance(block, dict) and block.get("type") == "tool_use":
-            tool_name = block.get("name", "unknown")
-            tool_input = block.get("input", {})
-            return tool_name, tool_input
+def find_tool_call(content):
+    tool_block = next((block for block in content if block.type == 'tool_use'), None)
+    
+    print("tool_block", tool_block)
+    if tool_block:
+        print(f"Found tool: {tool_block.name}")  # Will print "Found tool: search"
+        return tool_block.name, tool_block.input
+        
     return None, None
 
 
 def process_response(response, messages):
     print("Response received from API.")
-    print(f"Response: {response}")
-
+    
     if response.stop_reason == "tool_use":
         # Use the helper function to find the tool call
         tool_name, tool_input = find_tool_call(response.content)
@@ -164,9 +233,35 @@ def run_agent(messages: list, booking_data: Optional[Dict[str, Any]] = None):
         for field in payload["data"]["response"].split(": ")[1].split(", "):
             booking_data[field] = input(f"Please provide {field}: ")
         try:
+            formatted_messages = []
+            
+            # Check if we have valid booking data
+            if booking_data:
+                # Add booking data context to the first message
+                formatted_msg = {
+                    "role": "user",
+                    "content": f"""Search for the best hotels with these criteria:
+                    Location: {booking_data['location']}
+                    Dates: {booking_data['startDate']} to {booking_data['endDate']}
+                    Guests: {booking_data['numberOfGuests']}
+                    Rooms: {booking_data['numberOfRooms']}
+                    Features: {', '.join(booking_data['features'])}
+                    Budget: {booking_data['budgetPerPerson']} {booking_data['currency']} per person"""
+                }
+                formatted_messages.append(formatted_msg)
+            
+            # Only include user messages, skip assistant messages
+            for msg in messages:
+                if msg["role"] == "user":
+                    formatted_messages.append(msg)
+            
+            print("Formatted messages:", formatted_messages)  # Debug log
+            
             print("Sending request to API...")
             response = client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-sonnet-20240229",
+                system="You are a helpful assistant that helps users book hotels. You MUST use the search tool when booking criteria is provided.",
+                messages=formatted_messages,
                 max_tokens=1024,
                 tools=[
                     {
@@ -229,9 +324,27 @@ def run_agent(messages: list, booking_data: Optional[Dict[str, Any]] = None):
                             "required": ["query"],
                         },
                     },
-                ],
-                messages=messages,
+                ]
             )
+            
+            # # Check if there's a tool call in the response content
+            # tool_calls = [
+            #     block for block in response.content 
+            #     if isinstance(block, dict) and block.get("type") == "tool_calls"
+            # ]
+            
+            # if tool_calls:
+            #     tool_call = tool_calls[0]["tool_calls"][0]
+            #     tool_name = tool_call["function"]["name"]
+            #     tool_input = json.loads(tool_call["function"]["arguments"])
+            #     print(f"Tool called: {tool_name} with input: {tool_input}")
+            #     # Process the tool call...
+            # else:
+            #     print("No tool call found in response")
+            #     messages.append({
+            #         "role": "user",
+            #         "content": "Please use one of the available tools (search, booking, question, or answer) to respond."
+            #     })
 
             if not process_response(response, messages):
                 break
