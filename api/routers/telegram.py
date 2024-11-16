@@ -1,2 +1,0 @@
-# Create telegram api endpoint
-

@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from agents.agent import run_agent  
+from agents.agent import run_agent
 
 app = FastAPI()
+
 
 class BookingData(BaseModel):
     location: str = ""
@@ -15,6 +16,7 @@ class BookingData(BaseModel):
     budgetPerPerson: int = 0
     currency: str = "USD"
 
+
 class ChatHistory(BaseModel):
     name: str
     type: str
@@ -22,9 +24,11 @@ class ChatHistory(BaseModel):
     messages: list
     booking_data: Optional[BookingData] = None  # Make booking_data optional
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the FastAPI application!"}
+
 
 @app.post("/chat")
 async def chat_endpoint(chat_history: ChatHistory):
@@ -43,10 +47,7 @@ async def chat_endpoint(chat_history: ChatHistory):
     response = run_agent(formatted_messages, booking_data)
 
     # Return the agent's response along with booking data
-    print("returning from return", {
-        "responses": response,
-        "booking_data": booking_data})
-    return {
-        "responses": response,
-        "booking_data": booking_data
-    }
+    print(
+        "returning from return", {"responses": response, "booking_data": booking_data}
+    )
+    return {"responses": response, "booking_data": booking_data}
