@@ -11,7 +11,12 @@ class IntentRequest(BaseModel):
 
 @router.post("/")
 async def parse_intent_endpoint(request: IntentRequest):
-    intent, data, next_step = parse_intent(request.message)
-    if not intent:
-        raise HTTPException(status_code=400, detail="Could not determine intent.")
-    return {"intent": intent, "data": data, "next_step": next_step}
+    try:
+        intent, data, next_step = parse_intent(request.message)
+        if not intent:
+            raise HTTPException(status_code=400, detail="Could not determine intent.")
+        return {"intent": intent, "data": data, "next_step": next_step}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error.")
