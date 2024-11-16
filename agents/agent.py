@@ -43,6 +43,32 @@ def check_and_return_payload(data):
         }
 
 
+def process_response(response, messages):
+    print("Response received from API.")
+    print(f"Response: {response}")
+
+    tool_name = "unknown"
+    if response.stop_reason == "tool_use":
+        if response.content and isinstance(response.content[0], dict):
+            tool_name = response.content[0].get("name", "unknown")
+        if tool_name == "question":
+            # Extract the question and ask the user
+            question = response.content[0].get("input", {}).get("question", "")
+            print(f"Bot: {question}")
+            user_input = input("You: ")
+            messages.append({"role": "user", "content": user_input})
+            return True  # Continue the loop to process the next message
+
+    # If no function was called, prompt the user to call a function
+    messages.append(
+        {
+            "role": "user",
+            "content": "Please call one of these functions: search, booking, question, answer.",
+        }
+    )
+    return False  # Break the loop if no further action is needed
+
+
 def run_agent(messages, booking_data):
     # Initial user message
     messages.append(
@@ -132,44 +158,7 @@ def run_agent(messages, booking_data):
                 messages=messages,
             )
 
-            print("Response received from API.")
-            print(f"Response: {response}")
-
-            tool_name = "unknown"
-            # Check if a valid function was called
-            if response.stop_reason == "tool_use":
-                if response.content and isinstance(response.content[0], dict):
-                    tool_name = response.content[0].get("name", "unknown")
-                if tool_name == "question":
-                    # Extract the question and ask the user
-                    question = response.content[0].get("input", {}).get("question", "")
-                    print(f"Bot: {question}")
-                    user_input = input("You: ")
-                    messages.append({"role": "user", "content": user_input})
-                    continue  # Continue the loop to process the next message
-
-                # Handle other tool names as needed
-                # ...
-
-            # If no function was called, prompt the user to call a function
-            messages.append(
-                {
-                    "role": "user",
-                    "content": "Please call one of these functions: search, booking, question, answer.",
-                }
-            )
-
-            # If a function was called with invalid input, notify the user
-            if response.is_error:
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": f"You called function '{tool_name}' with invalid input. Please provide the correct input.",
-                    }
-                )
-
-            # Break the loop if no further action is needed
-            if not response.stop_reason == "tool_use":
+            if not process_response(response, messages):
                 break
 
         except Exception as e:
@@ -177,6 +166,7 @@ def run_agent(messages, booking_data):
             break
 
     return messages
+
 
 def main():
     messages = []
