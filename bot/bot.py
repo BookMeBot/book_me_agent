@@ -8,9 +8,7 @@
 
 #     updater = Updater(os.getenv("TELEGRAM_BOT_TOKEN"))
 #     dp = updater.dispatcher
-#     dp = updater.dispatcher
 #     dp.add_handler(start)
-#     dp.add_handler(handle_message)
 #     dp.add_handler(handle_message)
 #     updater.start_polling()
 #     updater.idle()

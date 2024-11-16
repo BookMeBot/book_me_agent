@@ -106,6 +106,9 @@
 #     main()
 
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from agents.intent_parser import parse_intent
 from agents.search_agent import search_hotels
 from cdp_agentkit_core.actions.register_basename import register_basename
@@ -123,6 +126,21 @@ def start():
     print(f"Your wallet address is {user_wallet['default_address_id']}.")
     print("Please provide a unique ENS domain name for your agent:")
     return ASSIGN_ENS
+
+
+def handle_message(user_message):
+    """
+    Process the user's message and respond based on the parsed intent.
+    """
+    # Parse the user's intent
+    intent, data = parse_intent(user_message)
+
+    if intent:
+        # Respond based on the parsed intent
+        print(f"Intent: {intent}\nData: {data}")
+    else:
+        # If no intent is found, ask for more information
+        print("I'm not sure what you mean. Could you provide more details?")
 
 def assign_ens():
     ens_name = input("ENS Domain: ").strip()

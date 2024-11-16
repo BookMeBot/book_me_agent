@@ -20,8 +20,14 @@ intent_parser_prompt = PromptTemplate(
 intent_parser_chain = intent_parser_prompt | llm
 
 def parse_intent(message):
-    response = intent_parser_chain.run(message)
-    # Assuming the response is a dictionary with 'intent' and 'data' keys
-    intent = response.get('intent')
-    data = response.get('data')
-    return intent, data
+    try:
+        # Use the LLMChain's method to execute the chain
+        response = intent_parser_chain({"message": message})
+        print(f"Response: {response}")  # Debug statement
+        # Assuming the response is a dictionary with 'intent' and 'data' keys
+        intent = response.get('intent', None)
+        data = response.get('data', None)
+        return intent, data
+    except Exception as e:
+        print(f"Error in parse_intent: {e}")  # Log the error
+        return None, None
