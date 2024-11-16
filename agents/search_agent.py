@@ -15,9 +15,11 @@ from cdp_langchain.utils import CdpAgentkitWrapper
 from cdp_langchain.tools import CdpTool
 from pydantic import BaseModel, Field
 from cdp import *
+
 load_dotenv()
 # Configure a file to persist the agent's CDP MPC Wallet Data.
 wallet_data_file = "wallet_data.txt"
+
 
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
@@ -52,20 +54,22 @@ def initialize_agent():
     config = {"configurable": {"thread_id": "Book Me Bot"}}
 
     # Create ReAct Agent using the LLM and CDP Agentkit tools.
-    return create_react_agent(
-        llm,
-        tools=tools,
-        checkpointer=memory,
-        state_modifier=
-        "You are a helpful agent that can browse online and find the best deals on hotels and travel.",
-    ), config
+    return (
+        create_react_agent(
+            llm,
+            tools=tools,
+            checkpointer=memory,
+            state_modifier="You are a helpful agent that can browse online and find the best deals on hotels and travel.",
+        ),
+        config,
+    )
 
 
 def search_hotels():
-    return ("")
+    return ""
 
-#TODO: Create method to browse and search hotels 
 
+# TODO: Create method to browse and search hotels
 
 
 # Chat Mode
@@ -80,7 +84,8 @@ def run_chat_mode(agent_executor, config):
 
             # Run agent with the user's input in chat mode
             for chunk in agent_executor.stream(
-                {"messages": [HumanMessage(content=user_input)]}, config):
+                {"messages": [HumanMessage(content=user_input)]}, config
+            ):
                 if "agent" in chunk:
                     print(chunk["agent"]["messages"][0].content)
                 elif "tools" in chunk:
@@ -97,7 +102,7 @@ def main():
     agent_executor, config = initialize_agent()
     run_chat_mode(agent_executor=agent_executor, config=config)
 
+
 if __name__ == "__main__":
     print("Starting Agent...")
     main()
-
