@@ -23,6 +23,7 @@ def parse_intent(message):
     """
     Parse the user's intent and determine the next step.
     """
+    print('in parse_intent')
     try:
         response = intent_parser_chain.run({"message": message})
         intent = response.get('intent')

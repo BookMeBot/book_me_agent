@@ -6,3 +6,4 @@ selenium
 python-dotenv
 fastapi
 uvicorn
+anthropic
