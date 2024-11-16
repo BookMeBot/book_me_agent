@@ -1,28 +1,20 @@
-import os
-import logging
+# Main Telegram bot entry point
 from handlers import handle_message, start
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Update
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 def main():
-    # Initialize the application
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    if not token:
-        logger.error("TELEGRAM_BOT_TOKEN is not set")
-        return
+    import os
 
-    application = Application.builder().token(token).build()
+    updater = Update(os.getenv("TELEGRAM_BOT_TOKEN"), use_context=True)
+    dp = updater.dispatcher
+    dp = updater.dispatcher
+    dp.add_handler(start)
+    dp.add_handler(handle_message)
+    dp.add_handler(handle_message)
+    updater.start_polling()
+    updater.idle()
 
-    # Add command and message handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    # Start the bot
-    logger.info("Starting the bot")
-    application.run_polling()
 
 if __name__ == "__main__":
     main()

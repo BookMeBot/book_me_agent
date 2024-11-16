@@ -1,6 +1,9 @@
 import os
+import sys
 from telegram import __version__ as tg_version
 from telegram.ext import CallbackContext, ConversationHandler, Updater, CommandHandler, MessageHandler, filters 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from agents.intent_parser import parse_intent
 from agents.search_agent import search_hotels
 from agents.qa_agent import answer_question
