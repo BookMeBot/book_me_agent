@@ -1,9 +1,11 @@
-langchain
-cdp-langchain
+
 openai
 python-telegram-bot==21.7
 selenium
-python-dotenv
-fastapi
 uvicorn
-anthropic
+fastapi
+anthropic==0.15.0
+python-dotenv
+requests==2.31.0
+pydantic
+playwright==1.41.0

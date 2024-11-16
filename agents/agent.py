@@ -158,7 +158,7 @@ def run_agent(messages: list, booking_data: Optional[Dict[str, Any]] = None):
         if payload["data"]["completedData"]:
             # Return a list of dictionaries with the expected structure
             return [{"role": "assistant", "content": payload["data"]["response"]}]
-        
+
         # If not all data is complete, ask for more information
         print(payload["data"]["response"])
         for field in payload["data"]["response"].split(": ")[1].split(", "):
@@ -242,6 +242,7 @@ def run_agent(messages: list, booking_data: Optional[Dict[str, Any]] = None):
 
     return messages
 
+
 def main():
     messages = []
     print("Welcome to the CLI chat with BookMeBot!")
@@ -273,6 +274,7 @@ def main():
                 print(f"Bot: {response['content']}")
             else:
                 print("Unexpected response format:", response)
+
 
 if __name__ == "__main__":
     main()
