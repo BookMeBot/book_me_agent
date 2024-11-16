@@ -58,7 +58,12 @@ def check_and_return_payload(data):
 
     if not missing_fields:
         # All fields are present, calculate totalBudget
-        data["totalBudget"] = data["numberOfGuests"] * data["budgetPerPerson"]
+        number_of_nights = (
+            data["endDate"] - data["startDate"]
+        ) // 86400  # 86400 seconds in a day
+
+        data["totalBudgetPerNight"] = data["numberOfGuests"] * data["budgetPerPerson"]
+        data["totalBudget"] = data["totalBudgetPerNight"] * number_of_nights
         return {
             "data": {
                 "chatId": "-4555870136",
@@ -154,6 +159,11 @@ def run_agent(messages, booking_data):
         payload = check_and_return_payload(booking_data)
         if payload["data"]["completedData"]:
             return payload["data"]["response"]
+        # If not all data is complete, ask for more information
+        print(payload["data"]["response"])
+        for field in payload["data"]["response"].split(": ")[1].split(", "):
+            booking_data[field] = input(f"Please provide {field}: ")
+
         try:
             print("Sending request to API...")
             response = client.messages.create(
