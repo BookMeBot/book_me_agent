@@ -1,0 +1,7 @@
+appmap_dir: tmp/appmap
+language: python
+name: book-me-agent
+packages:
+- path: agents
+- path: utils
+- path: bot
