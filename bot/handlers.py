@@ -174,6 +174,41 @@ def handle_travel_plans():
 
     return None  # End the conversation
 
+
+def handle_user_message(user_message):
+    """
+    Processes the user message and routes it through the appropriate API endpoints.
+    """
+    # Step 1: Parse intent
+    try:
+        response = requests.post(f"{BASE_URL}/intent/", json={"message": user_message})
+        if response.status_code != 200:
+            print("Failed to parse intent.")
+            return
+
+        result = response.json()
+        intent = result["intent"]
+        data = result["data"]
+        next_step = result["next_step"]
+
+        print(f"Intent: {intent}")
+        print(f"Next Step: {next_step}")
+
+        # Step 2: Perform next step based on the response
+        if next_step == "/search/":
+            search_response = requests.post(f"{BASE_URL}{next_step}", json=data)
+            print(f"Search Results: {search_response.json()}")
+        elif next_step == "/qa/":
+            qa_response = requests.post(f"{BASE_URL}{next_step}", json=data)
+            print(f"Answer: {qa_response.json()}")
+        elif next_step == "/booking/":
+            booking_response = requests.post(f"{BASE_URL}{next_step}", json=data)
+            print(f"Booking Confirmation: {booking_response.json()}")
+        else:
+            print("Unhandled next step.")
+    except Exception as e:
+        print(f"Error handling user message: {e}")
+        
 def main():
     state = start()
     while state is not None:

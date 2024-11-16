@@ -4,3 +4,5 @@ openai
 python-telegram-bot==21.7
 selenium
 python-dotenv
+fastapi
+uvicorn
