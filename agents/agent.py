@@ -1,3 +1,4 @@
+from typing import Any, Dict, Optional
 import anthropic
 import os
 from dotenv import load_dotenv
@@ -58,12 +59,7 @@ def check_and_return_payload(data):
 
     if not missing_fields:
         # All fields are present, calculate totalBudget
-        number_of_nights = (
-            data["endDate"] - data["startDate"]
-        ) // 86400  # 86400 seconds in a day
 
-        data["totalBudgetPerNight"] = data["numberOfGuests"] * data["budgetPerPerson"]
-        data["totalBudget"] = data["totalBudgetPerNight"] * number_of_nights
         return {
             "data": {
                 "chatId": "-4555870136",
@@ -153,17 +149,20 @@ def process_response(response, messages):
     return False  # break loop
 
 
-def run_agent(messages, booking_data):
-
+def run_agent(messages: list, booking_data: Optional[Dict[str, Any]] = None):
     while True:
+        if booking_data is None:
+            booking_data = {}  # Initialize as an empty dictionary if None
+
         payload = check_and_return_payload(booking_data)
         if payload["data"]["completedData"]:
-            return payload["data"]["response"]
+            # Return a list of dictionaries with the expected structure
+            return [{"role": "assistant", "content": payload["data"]["response"]}]
+        
         # If not all data is complete, ask for more information
         print(payload["data"]["response"])
         for field in payload["data"]["response"].split(": ")[1].split(", "):
             booking_data[field] = input(f"Please provide {field}: ")
-
         try:
             print("Sending request to API...")
             response = client.messages.create(
@@ -243,7 +242,6 @@ def run_agent(messages, booking_data):
 
     return messages
 
-
 def main():
     messages = []
     print("Welcome to the CLI chat with BookMeBot!")
@@ -265,10 +263,16 @@ def main():
             "currency": "USD",
         }
         responses = run_agent(messages, booking_data)
-        for response in responses:
-            if response["role"] == "assistant":
-                print(f"Bot: {response['content']}")
 
+        # Debugging: Print the type and content of responses
+        print("Type of responses:", type(responses))
+        print("Content of responses:", responses)
+
+        for response in responses:
+            if isinstance(response, dict) and response.get("role") == "assistant":
+                print(f"Bot: {response['content']}")
+            else:
+                print("Unexpected response format:", response)
 
 if __name__ == "__main__":
     main()

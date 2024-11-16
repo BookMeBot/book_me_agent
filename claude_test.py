@@ -14,7 +14,7 @@ print(client)
 MODEL_VERSION = "claude-3-5-sonnet-20241022"
 MAX_TOKENS = 1024
 TASK_DESCRIPTION = (
-    "Save a picture of a dog to my documents folder."  # Task description variable
+    "Book a hotel with the following specifications: ."  # Task description variable
 )
 BETA_VERSION = "computer-use-2024-10-22"  # Beta feature version
 
