@@ -12,6 +12,11 @@ class ChatHistory(BaseModel):
     messages: list
 
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the FastAPI application!"}
+
+
 @app.post("/chat")
 async def chat_endpoint(chat_history: ChatHistory):
     # Extract messages from the chat history

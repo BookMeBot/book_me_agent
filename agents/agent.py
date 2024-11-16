@@ -62,137 +62,121 @@ def run_agent(messages, booking_data):
     )
 
     while True:
-        response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1024,
-            tools=[
-                {
-                    "name": "search",
-                    "description": "Search for hotels based on booking data and user feedback.",
-                    "input_schema": {
-                        "type": "object",
-                        "properties": {
-                            "booking_data": {
-                                "type": "string",
-                                "description": "Booking data, never null.",
+        try:
+            print("Sending request to API...")
+            response = client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=1024,
+                tools=[
+                    {
+                        "name": "search",
+                        "description": "Search for hotels based on booking data and user feedback.",
+                        "input_schema": {
+                            "type": "object",
+                            "properties": {
+                                "booking_data": {
+                                    "type": "string",
+                                    "description": "Booking data, never null.",
+                                },
+                                "user_feedback": {
+                                    "type": "string",
+                                    "description": "User feedback data, can be null.",
+                                },
                             },
-                            "user_feedback": {
-                                "type": "string",
-                                "description": "User feedback data, can be null.",
+                            "required": ["booking_data"],
+                        },
+                    },
+                    {
+                        "name": "booking",
+                        "description": "Book a hotel based on user preferences.",
+                        "input_schema": {
+                            "type": "object",
+                            "properties": {
+                                "hotel_id": {
+                                    "type": "string",
+                                    "description": "ID of the hotel to book.",
+                                }
                             },
+                            "required": ["hotel_id"],
                         },
-                        "required": ["booking_data"],
                     },
-                },
-                {
-                    "name": "booking",
-                    "description": "Book a hotel based on user preferences.",
-                    "input_schema": {
-                        "type": "object",
-                        "properties": {
-                            "hotel_id": {
-                                "type": "string",
-                                "description": "ID of the hotel to book.",
-                            }
+                    {
+                        "name": "question",
+                        "description": "Ask the user for more information if key info is missing.",
+                        "input_schema": {
+                            "type": "object",
+                            "properties": {
+                                "question": {
+                                    "type": "string",
+                                    "description": "Question to ask the user.",
+                                }
+                            },
+                            "required": ["question"],
                         },
-                        "required": ["hotel_id"],
                     },
-                },
-                {
-                    "name": "question",
-                    "description": "Ask the user for more information if key info is missing.",
-                    "input_schema": {
-                        "type": "object",
-                        "properties": {
-                            "question": {
-                                "type": "string",
-                                "description": "Question to ask the user.",
-                            }
+                    {
+                        "name": "answer",
+                        "description": "Answer random questions like 'What is the area like?'",
+                        "input_schema": {
+                            "type": "object",
+                            "properties": {
+                                "query": {
+                                    "type": "string",
+                                    "description": "The question to answer.",
+                                }
+                            },
+                            "required": ["query"],
                         },
-                        "required": ["question"],
                     },
-                },
-                {
-                    "name": "answer",
-                    "description": "Answer random questions like 'What is the area like?'",
-                    "input_schema": {
-                        "type": "object",
-                        "properties": {
-                            "query": {
-                                "type": "string",
-                                "description": "The question to answer.",
-                            }
-                        },
-                        "required": ["query"],
-                    },
-                },
-            ],
-            messages=messages,
-        )
+                ],
+                messages=messages,
+            )
 
-        tool_name = "unknown"
-        # Check if a valid function was called
-        if response.stop_reason == "tool_use":
-            if response.content and isinstance(response.content[0], dict):
-                tool_name = response.content[0].get("name", "unknown")
-            if tool_name == "search":
-                print("Function called: search")
-                payload = check_and_return_payload(booking_data)
-                print(payload)
-                tool_result = {
-                    "role": "tool_result",
-                    "content": "Hotel search results: Hotel A, Hotel B, Hotel C",
-                }
-                messages.append(tool_result)
-            elif tool_name == "booking":
-                print("Function called: booking")
-                # Simulate a tool result
-                tool_result = {
-                    "role": "tool_result",
-                    "content": "Hotel booking confirmed for Hotel A. Transaction ID: 123456",
-                }
-                messages.append(tool_result)
-            elif tool_name == "question":
-                print("Function called: question")
-                # Simulate a tool result
-                tool_result = {
-                    "role": "tool_result",
-                    "content": "Please provide more details about your preferences.",
-                }
-                messages.append(tool_result)
-            elif tool_name == "answer":
-                print("Function called: answer")
-                # Simulate a tool result
-                tool_result = {
-                    "role": "tool_result",
-                    "content": "The area is known for its beautiful beaches.",
-                }
-                messages.append(tool_result)
-            continue  # Continue the loop to process the next message
+            print("Response received from API.")
+            print(f"Response: {response}")
 
-        # If no function was called, prompt the LLM to call a function
-        messages.append(
-            {
-                "role": "user",
-                "content": "Please call one of these functions: search, booking, question, answer.",
-            }
-        )
+            tool_name = "unknown"
+            # Check if a valid function was called
+            if response.stop_reason == "tool_use":
+                if response.content and isinstance(response.content[0], dict):
+                    tool_name = response.content[0].get("name", "unknown")
+                if tool_name == "question":
+                    # Extract the question and ask the user
+                    question = response.content[0].get("input", {}).get("question", "")
+                    print(f"Bot: {question}")
+                    user_input = input("You: ")
+                    messages.append({"role": "user", "content": user_input})
+                    continue  # Continue the loop to process the next message
 
-        # If a function was called with invalid input, notify the LLM
-        if response.is_error:
+                # Handle other tool names as needed
+                # ...
+
+            # If no function was called, prompt the user to call a function
             messages.append(
                 {
                     "role": "user",
-                    "content": f"You called function '{tool_name}' with invalid input. Please provide the correct input.",
+                    "content": "Please call one of these functions: search, booking, question, answer.",
                 }
             )
 
-        # Break the loop if no further action is needed
-        if not response.stop_reason == "tool_use":
+            # If a function was called with invalid input, notify the user
+            if response.is_error:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": f"You called function '{tool_name}' with invalid input. Please provide the correct input.",
+                    }
+                )
+
+            # Break the loop if no further action is needed
+            if not response.stop_reason == "tool_use":
+                break
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
             break
 
     return messages
-
 
 def main():
     messages = []
