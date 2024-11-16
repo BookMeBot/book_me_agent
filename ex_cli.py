@@ -1,7 +1,7 @@
 import os
 from agents.intent_parser import parse_intent
 from agents.search_agent import search_hotels
-from agents.qa_agent import answer_question
+from agents.question_agent import answer_question
 from agents.booking_agent import book_hotel
 
 
