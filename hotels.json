@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Chiangmai Inn Guest House",
+    "location": "Chang Moi, Chiang Mai",
+    "price_per_night": "$20",
+    "rating": "8.6",
+    "description": "Located in Chang Moi, this guest house offers comfortable accommodations with free WiFi access. Guests appreciate its proximity to local attractions and markets."
+  },
+  {
+    "name": "33 Poshtel",
+    "location": "Hai Ya, Chiang Mai",
+    "price_per_night": "$25",
+    "rating": "8.5",
+    "description": "Situated in the Hai Ya district, 33 Poshtel provides modern rooms with air conditioning and free WiFi. The property features an outdoor pool and a shared lounge."
+  },
+  {
+    "name": "Thapae Gate Lodge",
+    "location": "Phra Sing, Chiang Mai",
+    "price_per_night": "$20",
+    "rating": "9.0",
+    "description": "Well set in the center of Chiang Mai, Thapae Gate Lodge offers air-conditioned rooms, a garden, free WiFi, and a terrace. Guests praise its convenient location and friendly staff."
+  },
+  {
+    "name": "Pissamorn House",
+    "location": "Phra Sing, Chiang Mai",
+    "price_per_night": "$25",
+    "rating": "9.3",
+    "description": "Located in the center of the old city area, Pissamorn House offers free WiFi access and is known for its clean and comfortable rooms."
+  },
+  {
+    "name": "All in 1 Guesthouse",
+    "location": "Phra Sing, Chiang Mai",
+    "price_per_night": "$24",
+    "rating": "9.0",
+    "description": "Situated in a charming street with plenty of quiet bars and eateries, All in 1 Guesthouse offers simple accommodations with friendly service."
+  },
+  {
+    "name": "Paapu House",
+    "location": "Chang Moi, Chiang Mai",
+    "price_per_night": "$29",
+    "rating": "9.6",
+    "description": "Paapu House provides a clean and charming space with a back deck that stays cool from the sun all day, offering a nice quiet spot to relax."
+  },
+  {
+    "name": "Ban Pongphan",
+    "location": "Hai Ya, Chiang Mai",
+    "price_per_night": "$20",
+    "rating": "9.5",
+    "description": "Great location between the airport and old town, Ban Pongphan offers affordable accommodations with a night market opposite and many supermarkets around."
+  },
+  {
+    "name": "Ma Guesthouse Chiang Mai",
+    "location": "Phra Sing, Chiang Mai",
+    "price_per_night": "$20",
+    "rating": "9.0",
+    "description": "Ma Guesthouse offers clean and comfortable rooms with friendly staff, located in a convenient area close to local attractions."
+  },
+  {
+    "name": "Hidden Garden Hostel",
+    "location": "Hai Ya, Chiang Mai",
+    "price_per_night": "$36",
+    "rating": "9.0",
+    "description": "Hidden Garden Hostel provides spacious beds in dorms with plugs and curtains for privacy. Guests appreciate the clean facilities and helpful staff."
+  },
+  {
+    "name": "MD House",
+    "location": "Si Phum, Chiang Mai",
+    "price_per_night": "$34",
+    "rating": "7.8",
+    "description": "MD House offers lovely accommodations in the heart of Chiang Mai, with a receptionist who is a great host and helps with any problems."
+  }
+]

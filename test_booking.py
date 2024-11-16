@@ -1,4 +1,11 @@
 from src.travala_booking import BookingRequest, GuestInfo, TravalaBooker
+import logging
+import time
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 def test_booking():
@@ -12,7 +19,7 @@ def test_booking():
     )
 
     booking_request = BookingRequest(
-        location="Chiang Mai, Chiang Mai Province, Thailand",
+        location="Chiang Mai, Thailand",  # Simplified location
         check_in="27 Nov 2024",
         check_out="28 Nov 2024",
         guests=2,
@@ -21,11 +28,18 @@ def test_booking():
     )
 
     try:
+        logger.info("Starting booking test...")
+        logger.info(f"Booking details: {booking_request}")
+
         booker = TravalaBooker()
         result = booker.book_hotel(booking_request)
-        print("Booking Result:", result)
+
+        logger.info(f"Booking Result: {result}")
+        return result
+
     except Exception as e:
-        print("Booking Error:", str(e))
+        logger.error(f"Booking Error: {str(e)}")
+        return None
 
 
 if __name__ == "__main__":
