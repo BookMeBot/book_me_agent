@@ -1,10 +1,10 @@
+# api/api.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
 from agents.agent import run_agent
 
 app = FastAPI()
-
 
 class BookingData(BaseModel):
     location: str = ""
@@ -33,7 +33,6 @@ class BookingData(BaseModel):
         """Calculate the total budget for the stay."""
         return self.total_budget_per_night * self.number_of_nights
 
-
 class ChatHistory(BaseModel):
     name: str
     type: str
@@ -41,11 +40,19 @@ class ChatHistory(BaseModel):
     messages: list
     booking_data: Optional[BookingData] = None  # Make booking_data optional
 
+@app.get("/nft")
+async def create_nft(chat_history: ChatHistory):
+    # Extract messages from the chat history
+    messages = chat_history.messages
+
+    # Convert messages to the format expected by the agent
+    formatted_messages = [
+        {"role": "user", "content": message["text"]} for message in messages
+    ]
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to the FastAPI application!"}
-
 
 @app.post("/chat")
 async def chat_endpoint(chat_history: ChatHistory):

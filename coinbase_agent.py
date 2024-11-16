@@ -1,3 +1,4 @@
+# coinbase_agent.py
 import json
 import os
 import sys
@@ -93,10 +94,8 @@ hotels = [
 # Load environment variables
 load_dotenv()
 
-
 # Configure a file to persist the agent's CDP MPC Wallet Data.
 wallet_data_file = "wallet_data.txt"
-
 
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
@@ -145,7 +144,6 @@ def initialize_agent():
         config,
     )
 
-
 # Autonomous Mode
 def run_autonomous_mode(agent_executor, config, interval=10):
     """Run the agent autonomously with specified intervals."""
@@ -175,7 +173,6 @@ def run_autonomous_mode(agent_executor, config, interval=10):
             print("Goodbye Agent!")
             sys.exit(0)
 
-
 # Chat Mode
 def run_chat_mode(agent_executor, config):
     """Run the agent interactively based on user input."""
@@ -200,7 +197,6 @@ def run_chat_mode(agent_executor, config):
             print("Goodbye Agent!")
             sys.exit(0)
 
-
 # Mode Selection
 def choose_mode():
     """Choose whether to run in autonomous or chat mode based on user input."""
@@ -216,7 +212,6 @@ def choose_mode():
             return "auto"
         print("Invalid choice. Please try again.")
 
-
 def main():
     """Start the chatbot agent."""
     agent_executor, config = initialize_agent()
@@ -226,7 +221,6 @@ def main():
         run_chat_mode(agent_executor=agent_executor, config=config)
     elif mode == "auto":
         run_autonomous_mode(agent_executor=agent_executor, config=config)
-
 
 if __name__ == "__main__":
     print("Starting Agent...")
