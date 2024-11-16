@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import json
 import os
 
+# Load environment variables
 load_dotenv()
 
 # Initialize the language model
@@ -14,19 +15,60 @@ intent_parser_prompt = PromptTemplate(
     input_variables=["message"],
     template=(
         "You are an intent parser agent that decides which subagent should handle a user request. "
-        "Possible agents are:\n"
-        "'search': For searches based on user preferences.\n"
-        "'question': For answering specific questions about travel (e.g., Wi-Fi, area, tips).\n"
-        "'booking': For booking a travel plan based on confirmed user feedback.\n"
-        "\n"
-        "User message: {message}\n\n"
-        "Respond with a JSON object containing:\n"
-        "{\n"
-        "  'intent': 'search', 'question', or 'booking',\n"
-        "  'data': {relevant extracted data, e.g., location, amenities},\n"
-        "  'next_step': '/search/', '/question/', or '/booking/' based on intent.\n"
+        "Possible agents are:"
+        "'intent': For deciding where to route the agents - the home controller agent that is in charge of routing."
+        "'search': For searches based on user preferences."
+        "'question': For answering specific questions about travel (e.g., Wi-Fi, area, tips)."
+        "'booking': For booking a travel plan based on confirmed user feedback."
+        ""
+        "User message: {message}"
+        "Respond strictly with a JSON object in this format:"
+        "{"
+        "  'intent': 'intent' | 'search' | 'question' | 'booking',"
+        "  'data': {...},"
+        "  'next_step': '/intent/' | '/search/' | '/question/' | '/booking/'"
         "}"
+        "Ensure the output is a valid JSON object without any additional text."
     ),
+)
+
+function_schema = {
+    "name": "parse_intent",
+    "description": "Parse user message to determine intent and route. You are an intent parser agent that decides which subagent should handle a user request. "
+    "Possible agents are:"
+    "intent: For deciding where to route the agents - the home controller agent that is in charge of routing."
+    "search: For searches based on user preferences."
+    "question: For answering specific questions about travel (e.g., Wi-Fi, area, tips)."
+    "booking: For booking a travel plan based on confirmed user feedback.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "intent": { 
+                "type": "string",
+                "enum": ["intent", "search", "question", "booking"],
+                "description": "The determined intent of the user message.",
+            },
+            "data": {
+                "type": "object",
+                "description": "Relevant extracted data, e.g., location, amenities.",
+            },
+            "next_step": {
+                "type": "string",
+                "enum": ["/intent/", "/search/", "/question/", "/booking/"],
+                "description": "The endpoint to route based on intent.",
+            },
+        },
+        "required": ["message"],
+    },
+}
+
+# Initialize the language model with function calling capability
+llm = ChatOpenAI(
+    model="gpt-4o",
+    temperature=0,
+    api_key=os.getenv("OPENAI_API_KEY"),
+    functions=[function_schema],
+    function_call={"name": "parse_intent"},
 )
 
 
@@ -37,27 +79,43 @@ def parse_intent(message):
     print(f"Debug: Received message for parsing: {message}")
 
     try:
-        # Generate the model's response
-        response = llm.predict(intent_parser_prompt.format(message=message))
-        print(f"Raw response: {response}")  # Debugging: Inspect raw response
+        # Prepare the input for the model
+        input_message = {"role": "user", "content": message}
 
-        # Parse the response as JSON
-        response_data = json.loads(response)
+        # Generate the model's response
+        response = llm.invoke([input_message])
+        print(f"Debug: Raw response from LLM:\n{response}")  # Log the raw response
+
+        # Access the function call from the response
+        function_call = response.additional_kwargs.get("function_call")
+        if not function_call:
+            raise ValueError("No function call returned by the model.")
+
+        # Parse the arguments of the function call
+        function_args = function_call.get("arguments")
+        if not function_args:
+            raise ValueError("No function call arguments returned by the model.")
+
+        # Convert arguments from string to JSON
+        response_data = json.loads(function_args)
 
         # Extract fields from the response
         intent = response_data.get("intent")
-        data = response_data.get("data", {})
+        data = response_data.get(
+            "data", {}
+        )  # Default to an empty dict if data is missing
         next_step = response_data.get("next_step")
 
-        if intent not in {"search", "question", "booking"} or not next_step:
-            raise ValueError("Invalid intent or next_step in response.")
+        # Validate extracted fields
+        if not intent or intent not in {"intent", "search", "question", "booking"}:
+            print(f"Error: Missing or invalid 'intent' in response:\n{response_data}")
+            raise ValueError("Invalid intent in response.")
+        if not next_step:
+            print(f"Error: Missing 'next_step' in response:\n{response_data}")
+            raise ValueError("Invalid next_step in response.")
 
         return intent, data, next_step
-    except json.JSONDecodeError:
-        print(f"Error: Response not valid JSON:\n{response}")
-        raise ValueError("Failed to determine intent.")
+
     except Exception as e:
         print(f"Error parsing intent: {e}")
         raise ValueError("An error occurred during intent parsing.")
-
-
