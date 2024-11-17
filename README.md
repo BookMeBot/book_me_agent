@@ -43,3 +43,5 @@ Transaction link for the token creation: https://sepolia.basescan.org/tx/0x35a05
 I've created a new Zora Wow ERC20 memecoin called **ChiangMaiHotelCoin (CMHC)** on the Base Sepolia network. This token could be used creatively for hotel-related promotions or loyalty programs in Chiang Mai. You can view the transaction details [here](https://sepolia.basescan.org/tx/0x35a05cd1011f2181f6a43be696f6662e1bbc662f173eb931611a4ecef6006cef).
 
 We created a memecoin for ChiangMaiHotelCoin: https://sepolia.basescan.org/tx/0x35a05cd1011f2181f6a43be696f6662e1bbc662f173eb931611a4ecef6006cef#eventlog
+
+To run the Coinbase Agent run: python coinbase_agent.py
