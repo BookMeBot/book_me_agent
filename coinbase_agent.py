@@ -97,6 +97,7 @@ load_dotenv()
 # Configure a file to persist the agent's CDP MPC Wallet Data.
 wallet_data_file = "wallet_data.txt"
 
+
 def initialize_agent(messages):
     """Initialize the agent with CDP Agentkit."""
     # Initialize LLM.
@@ -144,6 +145,7 @@ def initialize_agent(messages):
         config,
     )
 
+
 def create_nft_metadata(booking_data):
     # Create metadata for the NFT using booking data
     metadata = {
@@ -153,14 +155,27 @@ def create_nft_metadata(booking_data):
             {"trait_type": "Location", "value": booking_data.get("location", "")},
             {"trait_type": "Start Date", "value": booking_data.get("startDate", "")},
             {"trait_type": "End Date", "value": booking_data.get("endDate", "")},
-            {"trait_type": "Number of Guests", "value": booking_data.get("numberOfGuests", 0)},
-            {"trait_type": "Number of Rooms", "value": booking_data.get("numberOfRooms", 0)},
-            {"trait_type": "Features", "value": ", ".join(booking_data.get("features", []))},
-            {"trait_type": "Budget Per Person", "value": booking_data.get("budgetPerPerson", 0)},
+            {
+                "trait_type": "Number of Guests",
+                "value": booking_data.get("numberOfGuests", 0),
+            },
+            {
+                "trait_type": "Number of Rooms",
+                "value": booking_data.get("numberOfRooms", 0),
+            },
+            {
+                "trait_type": "Features",
+                "value": ", ".join(booking_data.get("features", [])),
+            },
+            {
+                "trait_type": "Budget Per Person",
+                "value": booking_data.get("budgetPerPerson", 0),
+            },
             {"trait_type": "Currency", "value": booking_data.get("currency", "USD")},
-        ]
+        ],
     }
     return metadata
+
 
 def run_chat_mode(agent_executor, config, messages):
     """Run the agent interactively based on user input."""
@@ -175,9 +190,7 @@ def run_chat_mode(agent_executor, config, messages):
             messages.append({"role": "user", "content": user_input})
 
             # Run agent with the user's input in chat mode
-            for chunk in agent_executor.stream(
-                {"messages": messages}, config
-            ):
+            for chunk in agent_executor.stream({"messages": messages}, config):
                 if "agent" in chunk:
                     print(chunk["agent"]["messages"][0].content)
                 elif "tools" in chunk:
@@ -187,6 +200,7 @@ def run_chat_mode(agent_executor, config, messages):
         except KeyboardInterrupt:
             print("Goodbye Agent!")
             sys.exit(0)
+
 
 # Autonomous Mode
 def run_autonomous_mode(agent_executor, config, interval=10):
@@ -233,15 +247,19 @@ def choose_mode():
             return "auto"
         print("Invalid choice. Please try again.")
 
+
 def main():
     """Start the chatbot agent."""
-    agent_executor, config = initialize_agent()
+    messages = []  # Initialize messages list
+    agent_executor, config = initialize_agent(messages)  # Pass messages
+    run_chat_mode(agent_executor=agent_executor, config=config, messages=messages)
 
-    mode = choose_mode()
-    if mode == "chat":
-        run_chat_mode(agent_executor=agent_executor, config=config)
-    elif mode == "auto":
-        run_autonomous_mode(agent_executor=agent_executor, config=config)
+    # mode = choose_mode()
+    # if mode == "chat":
+    #     run_chat_mode(agent_executor=agent_executor, config=config)
+    # elif mode == "auto":
+    #     run_autonomous_mode(agent_executor=agent_executor, config=config)
+
 
 if __name__ == "__main__":
     print("Starting Agent...")

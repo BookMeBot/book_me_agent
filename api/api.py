@@ -60,12 +60,15 @@ async def create_nft(chat_history: ChatHistory):
         booking_data = {}
 
     # Initialize the agent with messages
-    agent_executor, config = initialize_agent(formatted_messages, booking_data)  # Pass booking_data
+    agent_executor, config = initialize_agent(
+        formatted_messages, booking_data
+    )  # Pass booking_data
 
     # Run the agent in chat mode with the provided chat history
     run_chat_mode(agent_executor, config, formatted_messages)
 
     return {"message": "NFT creation process initiated."}
+
 
 @app.get("/")
 async def root():
