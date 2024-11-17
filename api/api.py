@@ -42,16 +42,30 @@ class ChatHistory(BaseModel):
     booking_data: Optional[BookingData] = None  # Make booking_data optional
 
 
-@app.get("/nft")
+@app.post("/nft")
 async def create_nft(chat_history: ChatHistory):
-    # Initialize the agent
-    agent_executor, config = initialize_agent()
+    # Extract messages from the chat history
+    messages = chat_history.messages
+
+    # Convert messages to the format expected by the agent
+    formatted_messages = [
+        {"role": "user", "content": message["text"]} for message in messages
+    ]
+    print("formatted_messages:", formatted_messages)
+
+    # Extract booking data if available
+    if chat_history.booking_data:
+        booking_data = chat_history.booking_data.dict()
+    else:
+        booking_data = {}
+
+    # Initialize the agent with messages
+    agent_executor, config = initialize_agent(formatted_messages, booking_data)  # Pass booking_data
 
     # Run the agent in chat mode with the provided chat history
-    run_chat_mode(agent_executor, config)
+    run_chat_mode(agent_executor, config, formatted_messages)
 
     return {"message": "NFT creation process initiated."}
-
 
 @app.get("/")
 async def root():

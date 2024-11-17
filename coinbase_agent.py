@@ -97,7 +97,7 @@ load_dotenv()
 # Configure a file to persist the agent's CDP MPC Wallet Data.
 wallet_data_file = "wallet_data.txt"
 
-def initialize_agent():
+def initialize_agent(messages):
     """Initialize the agent with CDP Agentkit."""
     # Initialize LLM.
     llm = ChatOpenAI(
@@ -144,6 +144,33 @@ def initialize_agent():
         config,
     )
 
+
+def run_chat_mode(agent_executor, config, messages):
+    """Run the agent interactively based on user input."""
+    print("Starting chat mode... Type 'exit' to end.")
+    while True:
+        try:
+            user_input = input("\nUser: ")
+            if user_input.lower() == "exit":
+                break
+
+            # Add the user input to messages
+            messages.append({"role": "user", "content": user_input})
+
+            # Run agent with the user's input in chat mode
+            for chunk in agent_executor.stream(
+                {"messages": messages}, config
+            ):
+                if "agent" in chunk:
+                    print(chunk["agent"]["messages"][0].content)
+                elif "tools" in chunk:
+                    print(chunk["tools"]["messages"][0].content)
+                print("-------------------")
+
+        except KeyboardInterrupt:
+            print("Goodbye Agent!")
+            sys.exit(0)
+
 # Autonomous Mode
 def run_autonomous_mode(agent_executor, config, interval=10):
     """Run the agent autonomously with specified intervals."""
@@ -173,29 +200,6 @@ def run_autonomous_mode(agent_executor, config, interval=10):
             print("Goodbye Agent!")
             sys.exit(0)
 
-# Chat Mode
-def run_chat_mode(agent_executor, config):
-    """Run the agent interactively based on user input."""
-    print("Starting chat mode... Type 'exit' to end.")
-    while True:
-        try:
-            user_input = input("\nUser: ")
-            if user_input.lower() == "exit":
-                break
-
-            # Run agent with the user's input in chat mode
-            for chunk in agent_executor.stream(
-                {"messages": [HumanMessage(content=user_input)]}, config
-            ):
-                if "agent" in chunk:
-                    print(chunk["agent"]["messages"][0].content)
-                elif "tools" in chunk:
-                    print(chunk["tools"]["messages"][0].content)
-                print("-------------------")
-
-        except KeyboardInterrupt:
-            print("Goodbye Agent!")
-            sys.exit(0)
 
 # Mode Selection
 def choose_mode():
