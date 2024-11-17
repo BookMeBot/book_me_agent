@@ -1,5 +1,5 @@
 # api/api.py
-from coinbase_agent import initialize_agent, run_chat_mode
+from coinbase_agent import create_and_send_nft, initialize_agent, run_chat_mode
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
@@ -43,7 +43,7 @@ class ChatHistory(BaseModel):
 
 
 @app.post("/nft")
-async def create_nft(chat_history: ChatHistory):
+async def create_nft(chat_history: ChatHistory, wallet_addresses: List[str]):
     # Extract messages from the chat history
     messages = chat_history.messages
 
@@ -60,12 +60,10 @@ async def create_nft(chat_history: ChatHistory):
         booking_data = {}
 
     # Initialize the agent with messages
-    agent_executor, config = initialize_agent(
-        formatted_messages, booking_data
-    )  # Pass booking_data
+    agent_executor = initialize_agent(formatted_messages)
 
-    # Run the agent in chat mode with the provided chat history
-    run_chat_mode(agent_executor, config, formatted_messages)
+    # Create and send the NFT
+    create_and_send_nft(agent_executor, booking_data, wallet_addresses)
 
     return {"message": "NFT creation process initiated."}
 

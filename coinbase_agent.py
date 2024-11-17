@@ -13,6 +13,7 @@ load_dotenv()
 # Configure a file to persist the agent's CDP MPC Wallet Data.
 wallet_data_file = "wallet_data.txt"
 
+
 def initialize_agent():
     """Initialize the agent with CDP Agentkit."""
     llm = ChatOpenAI(
@@ -42,32 +43,40 @@ def initialize_agent():
         state_modifier="You are the biggest HYPE agent for creating NFTs and memecoins tied to a hotel.",
     )
 
+
 def create_nft_metadata(booking_data):
     metadata = {
         "name": booking_data.get("name", "Booking NFT"),
         "description": booking_data.get("description", "NFT representing a booking"),
         "attributes": [
             {"trait_type": "Location", "value": booking_data.get("location", "")},
-            {"trait_type": "Price Per Night", "value": booking_data.get("price_per_night", "")},
+            {
+                "trait_type": "Price Per Night",
+                "value": booking_data.get("price_per_night", ""),
+            },
             {"trait_type": "Rating", "value": booking_data.get("rating", "")},
         ],
     }
     return metadata
+
 
 def create_and_send_nft(agent_executor, booking_data, wallet_addresses):
     metadata = create_nft_metadata(booking_data)
     message_content = {
         "action": "create_and_send_nft",
         "metadata": metadata,
-        "wallet_addresses": wallet_addresses
+        "wallet_addresses": wallet_addresses,
     }
-    
-    for chunk in agent_executor.stream({"messages": [HumanMessage(content=json.dumps(message_content))]}):
+
+    for chunk in agent_executor.stream(
+        {"messages": [HumanMessage(content=json.dumps(message_content))]}
+    ):
         if "agent" in chunk:
             print(chunk["agent"]["messages"][0].content)
         elif "tools" in chunk:
             print(chunk["tools"]["messages"][0].content)
         print("-------------------")
+
 
 def main():
     booking_data = {
@@ -78,10 +87,11 @@ def main():
         "description": "Located in Chang Moi, this guest house offers comfortable accommodations with free WiFi access. Guests appreciate its proximity to local attractions and markets.",
     }
 
-    #TODO:change wallet address:
+    # TODO:change wallet address:
     wallet_addresses = ["wallet_address_1", "wallet_address_2"]
     agent_executor = initialize_agent()
     create_and_send_nft(agent_executor, booking_data, wallet_addresses)
+
 
 if __name__ == "__main__":
     print("Starting Agent...")
