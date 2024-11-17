@@ -144,6 +144,23 @@ def initialize_agent(messages):
         config,
     )
 
+def create_nft_metadata(booking_data):
+    # Create metadata for the NFT using booking data
+    metadata = {
+        "name": "Booking NFT",
+        "description": "NFT representing a booking",
+        "attributes": [
+            {"trait_type": "Location", "value": booking_data.get("location", "")},
+            {"trait_type": "Start Date", "value": booking_data.get("startDate", "")},
+            {"trait_type": "End Date", "value": booking_data.get("endDate", "")},
+            {"trait_type": "Number of Guests", "value": booking_data.get("numberOfGuests", 0)},
+            {"trait_type": "Number of Rooms", "value": booking_data.get("numberOfRooms", 0)},
+            {"trait_type": "Features", "value": ", ".join(booking_data.get("features", []))},
+            {"trait_type": "Budget Per Person", "value": booking_data.get("budgetPerPerson", 0)},
+            {"trait_type": "Currency", "value": booking_data.get("currency", "USD")},
+        ]
+    }
+    return metadata
 
 def run_chat_mode(agent_executor, config, messages):
     """Run the agent interactively based on user input."""
