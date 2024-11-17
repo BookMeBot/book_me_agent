@@ -7,6 +7,7 @@ from agents.agent import run_agent
 
 app = FastAPI()
 
+
 class BookingData(BaseModel):
     location: str = ""
     startDate: str = ""
@@ -34,10 +35,12 @@ class BookingData(BaseModel):
         """Calculate the total budget for the stay."""
         return self.total_budget_per_night * self.number_of_nights
 
+
 class ChatHistory(BaseModel):
     chatId: str
     messages: list
     booking_data: Optional[BookingData] = None  # Make booking_data optional
+
 
 @app.get("/nft")
 async def create_nft(chat_history: ChatHistory):
@@ -49,9 +52,11 @@ async def create_nft(chat_history: ChatHistory):
 
     return {"message": "NFT creation process initiated."}
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the FastAPI application!"}
+
 
 @app.post("/chat")
 async def chat_endpoint(chat_history: ChatHistory):
@@ -67,7 +72,6 @@ async def chat_endpoint(chat_history: ChatHistory):
         {"role": "user", "content": message["text"]} for message in messages
     ]
     print("formatted_messages:", formatted_messages)
-
 
     # Extract booking data if available
     if chat_history.booking_data:
